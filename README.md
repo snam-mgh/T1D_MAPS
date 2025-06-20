@@ -12,7 +12,7 @@ The following tools are required to calculate T1D MAPS:
 
 - [PLINK v1.9](https://www.cog-genomics.org/plink/)
 - [R ≥ 4.4](https://www.r-project.org/)
-  - data.table_1.16.4 is required to run `T1D_MAPS.R`
+  - data.table_1.16.4 and R.utils_2.12.3 are required to run `T1D_MAPS.R`
 
 ## Usage
 
@@ -49,7 +49,7 @@ The following tools are required to calculate T1D MAPS:
   -
     - [HLA_file]: Input file in compressed VCF format (.vcf.gz)
     
-    - [non_HLA_file]: PLINK binary file prefix (BFILE format)
+    - [non_HLA_file]: PLINK binary file prefix (BFILE format). Please note, the `ID` column in the [HLA_file] should match the `IID` column in this file.
     
     - [build]: Reference genome build; must be either "hg19" or "hg38"
     
@@ -59,8 +59,8 @@ The following tools are required to calculate T1D MAPS:
                     
     - The file containing the calculated scores will be named following the pattern: `T1DMAPS_<non_HLA_file>.total_score.txt`
       
-  **OPTION 2: If continuous genetic ancestry is available (T1D MAPS2)**
-    
+  **OPTION 2: If continuous European genetic ancestry probabilities are available (T1D MAPS2)**
+
   1. Calculate continuous probability of genetic ancestry. Refer to: https://github.com/atgu/ukbb_pan_ancestry/
           
   2. Calculate T1D GRS2. Refer to: https://github.com/sethsh7/PRSedm
@@ -69,7 +69,7 @@ The following tools are required to calculate T1D MAPS:
                   
       - [HLA_file]: Input file in compressed VCF format (.vcf.gz)
     
-      - [non_HLA_file]: PLINK binary file prefix (BFILE format)
+      - [non_HLA_file]: PLINK binary file prefix (BFILE format). Please note, the `ID` column in the [HLA_file] should match the `IID` column in this file.
     
       - [build]: Reference genome build; must be either "hg19" or "hg38"
     
@@ -77,9 +77,9 @@ The following tools are required to calculate T1D MAPS:
       
       - [working_dir]: Path to the directory containing all files from the cloned Git repository. Make sure the path ends with a forward slash (`/`)
       
-      - [genetic_prob_file]: Output file from calculating the continuous probability of genetic ancestry
+      - [genetic_prob_file]: Output file from calculating the continuous genetic ancestry probabilities. Must include a column named `prob_EUR`, which represents the probability of European genetic ancestry, and a column named `IID` with individual IDs that match the `ID` column in your [HLA_file].
       
-      - [t1d_grs2_file]: Output file from calculating T1D GRS2
+      - [t1d_grs2_file]: Output file from calculating T1D GRS2. Must include a column named `IID` with individual IDs that match the `ID` column in your [HLA_file].
                   
       - The file containing the calculated scores will be named following the pattern: `T1DMAPS2_<non_HLA_file>.total_score.txt`
             

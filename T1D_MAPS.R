@@ -159,25 +159,32 @@ log_msg("HLA PRS calculation completed.\n")
 # --------- PLINK Non-HLA PRS Scoring ---------
 score_col_chr <- if (genome_build == "hg38") 6 else if (genome_build == "hg19") 3 else stop("Invalid genome build. Use 'hg19' or 'hg38'.")
 
-gunzip(paste0(working_dir, "PRScs_EUR_phi1e-05_weights.txt.gz"),overwrite = FALSE,remove = FALSE)
+gz_file <- paste0(working_dir, "PRScs_EUR_phi1e-05_weights.txt.gz")
+txt_file <- paste0(working_dir, "PRScs_EUR_phi1e-05_weights.txt")
+if (file.exists(gz_file) && !file.exists(txt_file)) {
+  gunzip(gz_file, overwrite = FALSE, remove = FALSE)
+}
+scorefile <- txt_file
 scorefile <- paste0(working_dir, "PRScs_EUR_phi1e-05_weights.txt")
 outfile <- paste0(working_dir, "T1DMAPS_", bfile_base, ".txt")
 
 # Ensure .bim file SNP IDs are in chr:pos format
 bim_file <- paste0(input_plink, ".bim")
+output_bim <- paste0(working_dir, bfile_base, ".formatted.bim")
 bim <- fread(bim_file, header = FALSE)
 bim[, V2 := sub('^"?chr"?', '', V2)]                     # Remove 'chr' or "chr"
 bim[, V2 := sub('^(\\d+):(\\d+):.*', '\\1:\\2', V2)]     # Keep only chrom:pos if alleles exist
 bim[, V2 := sub('^(\\d+):(\\d+)$', '\\1:\\2', V2)]       # If already in chrom:pos, leave it
 bim[, V1 := sub('^"?chr"?', '', V1)] # In case "chr" in front
 bim[, V2 := ifelse(!grepl('^\\d+:\\d+$', V2), paste0(V1, ":", V4), V2)] # If V2 still doesn't match pattern, replace with chrom:pos using V1 and V4
-fwrite(bim, bim_file, sep = "\t", quote = FALSE, col.names = FALSE)
+fwrite(bim, output_bim, sep = "\t", quote = FALSE, col.names = FALSE)
 
 plink_cmd <- paste(
   shQuote(path_to_PLINK),
   "--bfile", shQuote(input_plink),
+  "--bim", shQuote(output_bim),
   "--score", shQuote(scorefile), score_col_chr, "8 10 sum",
-  "--out", shQuote(outfile)
+  "--out", shQuote(outfile) 
 )
 
 log_msg("Running PLINK non-HLA scoring step...\n")
@@ -213,8 +220,8 @@ if (!is.na(genetic_prob_file) && !is.na(t1d_grs2_file)) {
     stop("Some IDs in HLA file do not have matching ancestry probabilities.")}
   
   final_scores <- fread(paste0(working_dir, "T1DMAPS_", bfile_base, ".total_score.txt"))
-  final_scores[, match_key := sub(".*-", "", ID)]
-  merged_data[, match_key := sub(".*-", "", IID)]
+  final_scores[, match_key := ID]
+  merged_data[, match_key := IID]
   merged_data <- merge(merged_data, final_scores[, .(match_key, HLA_score, nonHLA_score, Total_score)], by = "match_key")
   
   merged_data[, T1D_GRS2_HLA := HLA_DRDQ + HLA_Class_1 + HLA_Class_2]
@@ -229,7 +236,7 @@ if (!is.na(genetic_prob_file) && !is.na(t1d_grs2_file)) {
                                    T1D_MAPS_Total_score = Total_score)]
   final_output <- merge(final_scores, merged_clean, by.x = "match_key", by.y = "IID", all.x = TRUE)
   final_output[, match_key := NULL]
-    
+  
   fwrite(final_output, paste0(working_dir, "T1DMAPS2_", bfile_base, ".total_score.txt"), sep = "\t")
   log_msg("Final T1D_MAPS2 scores written to file.\n")
 }
