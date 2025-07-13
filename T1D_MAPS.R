@@ -7,7 +7,6 @@ extract_HLA_rows <- function(vcf_file, output_file) {
   df <- fread(vcf_file)
   df <- data.frame(df)
   HLA_df <- df[grepl('HLA', df$ID), ]
-  names(HLA_df)[10:ncol(HLA_df)] <- sub('.','', names(HLA_df)[10:ncol(HLA_df)])
   names(HLA_df)[1] <- 'CHROM'
   write.table(HLA_df, file=output_file, row.names=FALSE, quote=FALSE)
   return(output_file)
@@ -17,7 +16,6 @@ extract_HLA_rows <- function(vcf_file, output_file) {
 extract_GT_DS <- function(hla_file, working_dir, gt_file, ds_file) {
   df <- fread(hla_file)
   df <- data.frame(df)
-  names(df)[10:ncol(df)] <- sub('.','', names(df)[10:ncol(df)])
   HLA_list <-  read.csv(paste0(working_dir, 'HLA_allele_list_for_T1D_PRS.txt'), head=F)
   df <- df[df$ID %in% HLA_list$V1, ]
   GT_df <- DS_df <- df
